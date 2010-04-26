@@ -1,4 +1,4 @@
-require "#{File.dirname(__FILE__)}/url_rewriter"
+require "#{File.dirname(__FILE__)}/url_for"
 
 # Copyright (c) 2005 David Heinemeier Hansson
 #
@@ -26,7 +26,7 @@ module SslRequirement
   def self.ssl_host
     determine_host(@@ssl_host)
   end
-  
+
   def self.non_ssl_host
     determine_host(@@non_ssl_host)
   end
@@ -35,7 +35,7 @@ module SslRequirement
   def ssl_host
     SslRequirement.ssl_host
   end
-  
+
   def non_ssl_host
     SslRequirement.non_ssl_host
   end
@@ -43,8 +43,8 @@ module SslRequirement
   def self.disable_ssl_check?
     @@disable_ssl_check ||= false
   end
-  
-  
+
+
   # called when Module is mixed in
   def self.included(controller)
     controller.extend(ClassMethods)
@@ -118,7 +118,7 @@ module SslRequirement
       "#{(non_ssl_host || request_host)}#{determine_port_string(request_port)}"
     end
   end
-  
+
   def self.determine_host(host)
     if host.is_a?(Proc) || host.respond_to?(:call)
       host.call

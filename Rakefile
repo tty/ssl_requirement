@@ -7,12 +7,12 @@ task :default => 'test'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "sslrequirement"
+    gemspec.name = "ssl_requirement"
     gemspec.summary = "Allow controller actions to force SSL on specific parts of the site."
     gemspec.description = "SSL requirement adds a declarative way of specifying that certain actions should only be allowed to run under SSL, and if they're accessed without it, they should be redirected."
-    gemspec.email = 'nathan@yardsticksoftware.com'
-    gemspec.homepage = 'http://github.com/yardstick/ssl_requirement'
-    gemspec.authors = ['RailsJedi', 'David Heinemeier Hansson', 'jcnetdev', 'bcurren', 'bmpercy','revo','nathany']
+    gemspec.email = 'bartt@vurve.com'
+    gemspec.homepage = 'http://github.com/bartt/ssl_requirement'
+    gemspec.authors = ['RailsJedi', 'David Heinemeier Hansson', 'jcnetdev', 'bcurren', 'bmpercy','revo','nathany', 'bartt']
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: gem install jeweler"
