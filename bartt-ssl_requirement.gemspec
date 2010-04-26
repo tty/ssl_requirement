@@ -20,12 +20,12 @@ Gem::Specification.new do |s|
      "README",
      "Rakefile",
      "VERSION",
+     "bartt-ssl_requirement.gemspec",
      "init.rb",
      "lib/ssl_requirement.rb",
      "lib/url_for.rb",
      "rails/init.rb",
      "shoulda_macros/ssl_requirement_macros.rb",
-     "ssl_requirement.gemspec",
      "test/ssl_requirement_test.rb",
      "test/url_for_test.rb"
   ]

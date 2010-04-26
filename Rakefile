@@ -7,7 +7,7 @@ task :default => 'test'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "ssl_requirement"
+    gemspec.name = "bartt-ssl_requirement"
     gemspec.summary = "Allow controller actions to force SSL on specific parts of the site."
     gemspec.description = "SSL requirement adds a declarative way of specifying that certain actions should only be allowed to run under SSL, and if they're accessed without it, they should be redirected."
     gemspec.email = 'bartt@vurve.com'
