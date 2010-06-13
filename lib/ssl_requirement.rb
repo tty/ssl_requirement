@@ -105,7 +105,7 @@ module SslRequirement
 
   def determine_redirect_url(request, ssl)
     protocol = ssl ? "https" : "http"
-    "#{protocol}://#{determine_host_and_port(request, ssl)}#{request.request_uri}"
+    "#{protocol}://#{determine_host_and_port(request, ssl)}#{request.fullpath}"
   end
 
   def determine_host_and_port(request, ssl)
