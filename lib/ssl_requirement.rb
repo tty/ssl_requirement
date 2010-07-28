@@ -24,11 +24,11 @@ module SslRequirement
   mattr_writer :ssl_host, :non_ssl_host, :disable_ssl_check
 
   def self.ssl_host
-    determine_host(@@ssl_host)
+    determine_host(@@ssl_host) rescue nil
   end
 
   def self.non_ssl_host
-    determine_host(@@non_ssl_host)
+    determine_host(@@non_ssl_host) rescue nil
   end
 
   # mattr_reader would generate both ssl_host and self.ssl_host
