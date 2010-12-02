@@ -60,7 +60,9 @@ module SslRequirement
     def ssl_exceptions(*actions)
       write_inheritable_array(:ssl_required_except_actions, actions)
     end
-
+    
+    # To allow SSL for any action pass :all as action like this:
+    # ssl_allowed :all
     def ssl_allowed(*actions)
       write_inheritable_array(:ssl_allowed_actions, actions)
     end
@@ -80,7 +82,9 @@ module SslRequirement
   end
 
   def ssl_allowed?
-    (self.class.read_inheritable_attribute(:ssl_allowed_actions) || []).include?(action_name.to_sym)
+    allowed_actions = (self.class.read_inheritable_attribute(:ssl_allowed_actions) || [])
+    
+    allowed_actions == [:all] || allowed_actions.include?(action_name.to_sym)
   end
 
   # normal ports are the ports used when no port is specified by the user to the browser
@@ -90,12 +94,14 @@ module SslRequirement
   private
   def ensure_proper_protocol
     return true if SslRequirement.disable_ssl_check?
-    return true if ssl_allowed?
-
+    
     if ssl_required? && !request.ssl?
       redirect_to determine_redirect_url(request, true)
       flash.keep
       return false
+    elsif request.ssl? && ssl_allowed?
+      flash.keep
+      return true
     elsif request.ssl? && !ssl_required?
       redirect_to determine_redirect_url(request, false)
       flash.keep

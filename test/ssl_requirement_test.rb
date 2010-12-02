@@ -19,7 +19,7 @@ MSG
   end
 end
 
-require 'action_controller/test_process'
+require 'action_dispatch/testing/test_process'
 require 'test/unit'
 require "#{File.dirname(__FILE__)}/../lib/ssl_requirement"
 
@@ -31,6 +31,13 @@ ActionController::Routing::Routes.reload rescue nil
 
 # this first controller modifies the flash in every action so that flash
 # set in set_flash is eventually expired (see NOTE below...)
+
+ROUTES = ActionDispatch::Routing::RouteSet.new
+ROUTES.draw do
+  match ':controller(/:action(/:id(.:format)))'
+end
+ROUTES.finalize!
+
 
 class SslRequirementController < ActionController::Base
   include SslRequirement
@@ -60,6 +67,11 @@ class SslRequirementController < ActionController::Base
 
   def set_flash
     flash[:foo] = "bar"
+    render :nothing => true
+  end
+  
+  def self._routes
+    ROUTES
   end
 end
 
@@ -86,6 +98,9 @@ class SslExceptionController < ActionController::Base
     render :nothing => true
   end
   
+  def self._routes
+    ROUTES
+  end
 end
 
 class SslAllActionsController < ActionController::Base
@@ -97,6 +112,31 @@ class SslAllActionsController < ActionController::Base
     render :nothing => true
   end
   
+  def self._routes
+    ROUTES
+  end
+end
+
+class SslAllowAllActionsController < ActionController::Base
+  include SslRequirement
+  
+  ssl_allowed :all
+    
+  def a
+    render :nothing => true
+  end
+  
+  def b
+    render :nothing => true
+  end
+  
+  def self._routes
+    ROUTES
+  end
+end
+
+class SslAllowAllAndRequireController < SslAllowAllActionsController
+  ssl_required :a, :b
 end
 
 # NOTE: The only way I could get the flash tests to work under Rails 2.3.2
@@ -117,8 +157,11 @@ end
 #
 #       This feels a little hacky, so if anyone can improve it, please do so!
 
+
 class SslRequirementTest < ActionController::TestCase
   def setup
+    @routes = ROUTES
+    
     @controller = SslRequirementController.new
     @ssl_host_override = 'www.example.com:80443'
     @non_ssl_host_override = 'www.example.com:8080'
@@ -128,7 +171,9 @@ class SslRequirementTest < ActionController::TestCase
 
   def test_redirect_to_https_preserves_non_normal_port
     assert_not_equal "on", @request.env["HTTPS"]
+    @request.host = 'www.example.com:4567'
     @request.port = 4567
+
     get :b
     assert_response :redirect
     assert_match %r{^https://.*:4567/}, @response.headers['Location']
@@ -339,4 +384,38 @@ class SslRequirementTest < ActionController::TestCase
                  @response.headers['Location']
     SslRequirement.non_ssl_host = nil
   end
+  
+  # test allowing ssl on any action by the :all symbol
+  def test_controller_that_allows_ssl_on_all_actions_allows_requests_with_or_without_ssl_enabled
+    @controller = SslAllowAllActionsController.new
+    
+    assert_not_equal "on", @request.env["HTTPS"]
+    
+    get :a
+    assert_response :success
+    
+    get :b
+    assert_response :success
+    
+    @request.env["HTTPS"] = "on"
+    
+    get :a
+    assert_response :success
+    
+    get :b
+    assert_response :success
+  end
+  
+  def test_required_without_ssl_and_allowed_all
+    @controller = SslAllowAllAndRequireController.new
+    
+    assert_not_equal "on", @request.env["HTTPS"]
+    get :a
+    assert_response :redirect
+    assert_match %r{^https://}, @response.headers['Location']
+    get :b
+    assert_response :redirect
+    assert_match %r{^https://}, @response.headers['Location']
+  end
+  
 end
