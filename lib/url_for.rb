@@ -36,7 +36,7 @@ module ActionDispatch
       # non-ssl host override, then use it
       def url_for_with_non_ssl_host(options)
         if !options[:only_path] && !SslRequirement.non_ssl_host.nil?
-          if !(/^https/ =~ (options[:protocol] || @request.protocol))
+          if !(/^https/ =~ (options[:protocol] || @request.try(:protocol)))
             options.merge! :host => SslRequirement.non_ssl_host
           end
         end
