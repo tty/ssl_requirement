@@ -96,13 +96,13 @@ module SslRequirement
     return true if SslRequirement.disable_ssl_check?
 
     if ssl_required? && !request.ssl?
-      redirect_to determine_redirect_url(request, true), :status => (redirect_status || 302)
+      redirect_to determine_redirect_url(request, true), :status => (redirect_status || :found)
       flash.keep
       return false
     elsif request.ssl? && ssl_allowed?
       return true
     elsif request.ssl? && !ssl_required?
-      redirect_to determine_redirect_url(request, false), :status => (redirect_status || 302)
+      redirect_to determine_redirect_url(request, false), :status => (redirect_status || :found)
       flash.keep
       return false
     end
