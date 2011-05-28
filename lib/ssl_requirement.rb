@@ -21,7 +21,8 @@ require "#{File.dirname(__FILE__)}/url_for"
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 module SslRequirement
-  mattr_writer :ssl_host, :non_ssl_host, :disable_ssl_check, :redirect_status
+  mattr_writer :ssl_host, :non_ssl_host, :disable_ssl_check
+  mattr_accessor :redirect_status
 
   def self.ssl_host
     determine_host(@@ssl_host) rescue nil

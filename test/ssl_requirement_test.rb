@@ -18,10 +18,11 @@ MSG
     end
   end
 end
+$:.unshift(File.dirname(__FILE__) + '/../lib')
 
 require 'action_dispatch/testing/test_process'
 require 'test/unit'
-require "#{File.dirname(__FILE__)}/../lib/ssl_requirement"
+require "ssl_requirement"
 
 ActionController::Base.logger = nil
 ActionController::Routing::Routes.reload rescue nil
@@ -41,25 +42,25 @@ ROUTES.finalize!
 
 class SslRequirementController < ActionController::Base
   include SslRequirement
-  
+
   ssl_required :a, :b
   ssl_allowed :c
-  
+
   def a
     flash[:abar] = "foo"
     render :nothing => true
   end
-  
+
   def b
     flash[:bbar] = "foo"
     render :nothing => true
   end
-  
+
   def c
     flash[:cbar] = "foo"
     render :nothing => true
   end
-  
+
   def d
     flash[:dbar] = "foo"
     render :nothing => true
@@ -69,7 +70,7 @@ class SslRequirementController < ActionController::Base
     flash[:foo] = "bar"
     render :nothing => true
   end
-  
+
   def self._routes
     ROUTES
   end
@@ -77,27 +78,27 @@ end
 
 class SslExceptionController < ActionController::Base
   include SslRequirement
-  
+
   ssl_required  :a
   ssl_exceptions :b
   ssl_allowed :d
-    
+
   def a
     render :nothing => true
   end
-  
+
   def b
     render :nothing => true
   end
-  
+
   def c
     render :nothing => true
   end
-  
+
   def d
     render :nothing => true
   end
-  
+
   def self._routes
     ROUTES
   end
@@ -105,13 +106,13 @@ end
 
 class SslAllActionsController < ActionController::Base
   include SslRequirement
-  
+
   ssl_exceptions
-    
+
   def a
     render :nothing => true
   end
-  
+
   def self._routes
     ROUTES
   end
@@ -119,17 +120,17 @@ end
 
 class SslAllowAllActionsController < ActionController::Base
   include SslRequirement
-  
+
   ssl_allowed :all
-    
+
   def a
     render :nothing => true
   end
-  
+
   def b
     render :nothing => true
   end
-  
+
   def self._routes
     ROUTES
   end
@@ -141,7 +142,7 @@ end
 
 # NOTE: The only way I could get the flash tests to work under Rails 2.3.2
 #       (without resorting to IntegrationTest with some artificial session
-#       store) was to use TestCase. In TestCases, it appears that flash 
+#       store) was to use TestCase. In TestCases, it appears that flash
 #       messages are effectively persisted in session after the last controller
 #       action that consumed them...so that when the TestCase inspects
 #       the FlashHash, it will find the flash still populated, even though
@@ -151,8 +152,8 @@ end
 #       flash is persisted forever. But if subsequent controller actions add to
 #       flash, the older flash messages eventually disappear.
 #
-#       As a result, the flash-related tests now make two requests after the 
-#       set_flash, each of these requests is also modifying flash. flash is 
+#       As a result, the flash-related tests now make two requests after the
+#       set_flash, each of these requests is also modifying flash. flash is
 #       inspected after the second request returns.
 #
 #       This feels a little hacky, so if anyone can improve it, please do so!
@@ -161,7 +162,7 @@ end
 class SslRequirementTest < ActionController::TestCase
   def setup
     @routes = ROUTES
-    
+
     @controller = SslRequirementController.new
     @ssl_host_override = 'www.example.com:80443'
     @non_ssl_host_override = 'www.example.com:8080'
@@ -187,7 +188,7 @@ class SslRequirementTest < ActionController::TestCase
   end
 
   # flash-related tests
-  
+
   def test_redirect_to_https_preserves_flash
     assert_not_equal "on", @request.env["HTTPS"]
     get :set_flash
@@ -197,7 +198,7 @@ class SslRequirementTest < ActionController::TestCase
     assert_response :redirect       # make sure it happens again
     assert_equal "bar", flash[:foo] # the flash would be gone now if no redirect
   end
-  
+
   def test_not_redirecting_to_https_does_not_preserve_the_flash
     assert_not_equal "on", @request.env["HTTPS"]
     get :set_flash
@@ -207,7 +208,7 @@ class SslRequirementTest < ActionController::TestCase
     assert_response :success        # check no redirect
     assert_nil flash[:foo]          # the flash should be gone now
   end
-  
+
   def test_redirect_to_http_preserves_flash
     get :set_flash
     @request.env['HTTPS'] = "on"
@@ -217,7 +218,7 @@ class SslRequirementTest < ActionController::TestCase
     assert_response :redirect       # make sure redirect happens
     assert_equal "bar", flash[:foo] # flash would be gone now if no redirect
   end
-  
+
   def test_not_redirecting_to_http_does_not_preserve_the_flash
     get :set_flash
     @request.env['HTTPS'] = "on"
@@ -229,7 +230,7 @@ class SslRequirementTest < ActionController::TestCase
   end
 
   # ssl required/allowed/exceptions testing
-  
+
   def test_required_without_ssl
     assert_not_equal "on", @request.env["HTTPS"]
     get :a
@@ -239,7 +240,7 @@ class SslRequirementTest < ActionController::TestCase
     assert_response :redirect
     assert_match %r{^https://}, @response.headers['Location']
   end
-  
+
   def test_required_with_ssl
     @request.env['HTTPS'] = "on"
     get :a
@@ -253,7 +254,7 @@ class SslRequirementTest < ActionController::TestCase
     get :d
     assert_response :success
   end
-  
+
   def test_ssl_exceptions_without_ssl
     @controller = SslExceptionController.new
     assert_not_equal "on", @request.env["HTTPS"]
@@ -266,7 +267,7 @@ class SslRequirementTest < ActionController::TestCase
     assert_response :redirect
     assert_match %r{^https://}, @response.headers['Location']
   end
-    
+
   def test_ssl_exceptions_with_ssl
     @controller = SslExceptionController.new
     @request.env['HTTPS'] = "on"
@@ -275,14 +276,14 @@ class SslRequirementTest < ActionController::TestCase
     get :c
     assert_response :success
   end
-  
+
   def test_ssl_all_actions_without_ssl
     @controller = SslAllActionsController.new
     get :a
     assert_response :redirect
     assert_match %r{^https://}, @response.headers['Location']
   end
-  
+
   def test_disallowed_with_ssl
     @request.env['HTTPS'] = "on"
     get :d
@@ -360,7 +361,7 @@ class SslRequirementTest < ActionController::TestCase
   end
 
   # test ssl_host and ssl_non_host overrides with Procs
-  
+
   def test_ssl_redirect_with_ssl_host_proc
     SslRequirement.ssl_host = Proc.new do
       @ssl_host_override
@@ -368,14 +369,14 @@ class SslRequirementTest < ActionController::TestCase
     assert_not_equal "on", @request.env["HTTPS"]
     get :a
     assert_response :redirect
-    assert_match Regexp.new("^https://#{@ssl_host_override}"), 
+    assert_match Regexp.new("^https://#{@ssl_host_override}"),
                  @response.headers['Location']
     SslRequirement.ssl_host = nil
   end
 
   def test_non_ssl_redirect_with_non_ssl_host_proc
     SslRequirement.non_ssl_host = Proc.new do
-      @non_ssl_host_override 
+      @non_ssl_host_override
     end
     @request.env['HTTPS'] = 'on'
     get :d
@@ -384,31 +385,31 @@ class SslRequirementTest < ActionController::TestCase
                  @response.headers['Location']
     SslRequirement.non_ssl_host = nil
   end
-  
+
   # test allowing ssl on any action by the :all symbol
   def test_controller_that_allows_ssl_on_all_actions_allows_requests_with_or_without_ssl_enabled
     @controller = SslAllowAllActionsController.new
-    
+
     assert_not_equal "on", @request.env["HTTPS"]
-    
+
     get :a
     assert_response :success
-    
+
     get :b
     assert_response :success
-    
+
     @request.env["HTTPS"] = "on"
-    
+
     get :a
     assert_response :success
-    
+
     get :b
     assert_response :success
   end
-  
+
   def test_required_without_ssl_and_allowed_all
     @controller = SslAllowAllAndRequireController.new
-    
+
     assert_not_equal "on", @request.env["HTTPS"]
     get :a
     assert_response :redirect
@@ -417,5 +418,5 @@ class SslRequirementTest < ActionController::TestCase
     assert_response :redirect
     assert_match %r{^https://}, @response.headers['Location']
   end
-  
+
 end
