@@ -21,11 +21,15 @@ require "#{File.dirname(__FILE__)}/url_for"
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 module SslRequirement
-  mattr_writer :ssl_host, :non_ssl_host, :disable_ssl_check
+  mattr_writer :ssl_host, :ssl_port, :non_ssl_host, :disable_ssl_check
   mattr_accessor :redirect_status
 
   def self.ssl_host
     determine_host(@@ssl_host) rescue nil
+  end
+
+  def self.ssl_port
+    @@ssl_port
   end
 
   def self.non_ssl_host
@@ -35,6 +39,10 @@ module SslRequirement
   # mattr_reader would generate both ssl_host and self.ssl_host
   def ssl_host
     SslRequirement.ssl_host
+  end
+
+  def ssl_port
+    SslRequirement.ssl_port
   end
 
   def non_ssl_host
@@ -119,7 +127,7 @@ module SslRequirement
     request_port = request.port
 
     if ssl
-      "#{(ssl_host || request_host)}#{determine_port_string(request_port)}"
+      "#{(ssl_host || request_host)}#{ssl_port || determine_port_string(request_port)}"
     else
       "#{(non_ssl_host || request_host)}#{determine_port_string(request_port)}"
     end
