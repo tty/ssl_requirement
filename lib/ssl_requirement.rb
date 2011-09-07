@@ -29,7 +29,7 @@ module SslRequirement
   end
 
   def self.ssl_port
-    @@ssl_port
+    @@ssl_port ||= 433
   end
 
   def self.non_ssl_host
